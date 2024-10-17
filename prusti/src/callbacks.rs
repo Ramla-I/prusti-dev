@@ -131,42 +131,42 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
         Compilation::Continue
     }
 
-    #[tracing::instrument(level = "debug", skip_all)]
-    fn after_analysis<'tcx>( // RAMLA'S NOTES: Called after type checking, this is where prusti_driver's work starts
-        &mut self,
-        _error_handler: &EarlyErrorHandler,
-        compiler: &Compiler,
-        queries: &'tcx Queries<'tcx>,
-    ) -> Compilation {
-        compiler.session().abort_if_errors();
-        queries.global_ctxt().unwrap().enter(|tcx| {
-            let mut env = Environment::new(tcx, env!("CARGO_PKG_VERSION"));
-            let spec_checker = specs::checker::SpecChecker::new();
-            spec_checker.check(&env); // RAMLA'S NOTES: This is where prusti_driver checks that the specs are well-formed, I think
-            compiler.session().abort_if_errors();
+    // #[tracing::instrument(level = "debug", skip_all)]
+    // fn after_analysis<'tcx>( // RAMLA'S NOTES: Called after type checking, this is where prusti_driver's work starts
+    //     &mut self,
+    //     _error_handler: &EarlyErrorHandler,
+    //     compiler: &Compiler,
+    //     queries: &'tcx Queries<'tcx>,
+    // ) -> Compilation {
+    //     compiler.session().abort_if_errors();
+    //     queries.global_ctxt().unwrap().enter(|tcx| {
+    //         let mut env = Environment::new(tcx, env!("CARGO_PKG_VERSION"));
+    //         let spec_checker = specs::checker::SpecChecker::new();
+    //         spec_checker.check(&env); // RAMLA'S NOTES: This is where prusti_driver checks that the specs are well-formed, I think
+    //         compiler.session().abort_if_errors();
 
-            let hir = env.query.hir();
-            let mut spec_collector = specs::SpecCollector::new(&mut env);
-            spec_collector.collect_specs(hir); // RAMLA'S NOTES: This is where prusti_driver collects the specs from the HIR
+    //         let hir = env.query.hir();
+    //         let mut spec_collector = specs::SpecCollector::new(&mut env);
+    //         spec_collector.collect_specs(hir); // RAMLA'S NOTES: This is where prusti_driver collects the specs from the HIR
 
-            let mut def_spec = spec_collector.build_def_specs(); // RAMLA'S NOTES: This is where prusti_driver builds the VIR, I think
-            // Do print_typeckd_specs prior to importing cross crate
-            if config::print_typeckd_specs() {
-                for value in def_spec.all_values_debug(config::hide_uuids()) {
-                    println!("{value}");
-                }
-            }
-            CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
-            if !config::no_verify() {
-                verify(env, def_spec); // RAMLA'S NOTES: This is where prusti_driver sends VIR to be verified
-            }
-        });
+    //         let mut def_spec = spec_collector.build_def_specs(); // RAMLA'S NOTES: This is where prusti_driver builds the VIR, I think
+    //         // Do print_typeckd_specs prior to importing cross crate
+    //         if config::print_typeckd_specs() {
+    //             for value in def_spec.all_values_debug(config::hide_uuids()) {
+    //                 println!("{value}");
+    //             }
+    //         }
+    //         CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
+    //         if !config::no_verify() {
+    //             verify(env, def_spec); // RAMLA'S NOTES: This is where prusti_driver sends VIR to be verified
+    //         }
+    //     });
 
-        compiler.session().abort_if_errors();
-        if config::full_compilation() {
-            Compilation::Continue
-        } else {
-            Compilation::Stop
-        }
-    }
+    //     compiler.session().abort_if_errors();
+    //     if config::full_compilation() {
+    //         Compilation::Continue
+    //     } else {
+    //         Compilation::Stop
+    //     }
+    // }
 }
