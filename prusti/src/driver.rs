@@ -185,9 +185,13 @@ fn main() {
             ));
         }
 
-        let mut callbacks = PrustiCompilerCalls;
+        // RAMLA'S NOTES: Everything before this is basically setting up the environment for the Rust compiler
+        // and dealing with configuration flags
 
-        driver::RunCompiler::new(&rustc_args, &mut callbacks).run()
+        let mut callbacks = PrustiCompilerCalls; // RAMLA'S NOTES: This is where prusti_driver registers callbacks
+
+
+        driver::RunCompiler::new(&rustc_args, &mut callbacks).run() // RAMLA'S NOTES: This is where the prusti_driver calls the Rust compiler
     });
 
     // Check if verifying a program in our test suite is taking too long

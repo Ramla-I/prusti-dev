@@ -73,7 +73,7 @@ fn mir_promoted<'tcx>(
 }
 
 impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
-    fn config(&mut self, config: &mut Config) {
+    fn config(&mut self, config: &mut Config) { // RAMLA'S NOTES: Called before creating the compiler instance
         assert!(config.override_queries.is_none());
         config.override_queries = Some(
             |_session: &Session, providers: &mut Providers, _external: &mut ExternProviders| {
@@ -83,7 +83,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
         );
     }
     #[tracing::instrument(level = "debug", skip_all)]
-    fn after_expansion<'tcx>(
+    fn after_expansion<'tcx>( // RAMLA'S NOTES: Called after macro expansion, prusti_driver doesn't really do anything here
         &mut self,
         compiler: &Compiler,
         queries: &'tcx Queries<'tcx>,
@@ -132,7 +132,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
     }
 
     #[tracing::instrument(level = "debug", skip_all)]
-    fn after_analysis<'tcx>(
+    fn after_analysis<'tcx>( // RAMLA'S NOTES: Called after type checking, this is where prusti_driver's work starts
         &mut self,
         _error_handler: &EarlyErrorHandler,
         compiler: &Compiler,
@@ -142,14 +142,14 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
         queries.global_ctxt().unwrap().enter(|tcx| {
             let mut env = Environment::new(tcx, env!("CARGO_PKG_VERSION"));
             let spec_checker = specs::checker::SpecChecker::new();
-            spec_checker.check(&env);
+            spec_checker.check(&env); // RAMLA'S NOTES: This is where prusti_driver checks that the specs are well-formed, I think
             compiler.session().abort_if_errors();
 
             let hir = env.query.hir();
             let mut spec_collector = specs::SpecCollector::new(&mut env);
-            spec_collector.collect_specs(hir);
+            spec_collector.collect_specs(hir); // RAMLA'S NOTES: This is where prusti_driver collects the specs from the HIR
 
-            let mut def_spec = spec_collector.build_def_specs();
+            let mut def_spec = spec_collector.build_def_specs(); // RAMLA'S NOTES: This is where prusti_driver builds the VIR, I think
             // Do print_typeckd_specs prior to importing cross crate
             if config::print_typeckd_specs() {
                 for value in def_spec.all_values_debug(config::hide_uuids()) {
@@ -158,7 +158,7 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
             }
             CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
             if !config::no_verify() {
-                verify(env, def_spec);
+                verify(env, def_spec); // RAMLA'S NOTES: This is where prusti_driver sends VIR to be verified
             }
         });
 
