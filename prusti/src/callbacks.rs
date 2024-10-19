@@ -73,63 +73,63 @@ fn mir_promoted<'tcx>(
 }
 
 impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
-    fn config(&mut self, config: &mut Config) { // RAMLA'S NOTES: Called before creating the compiler instance
-        assert!(config.override_queries.is_none());
-        config.override_queries = Some(
-            |_session: &Session, providers: &mut Providers, _external: &mut ExternProviders| {
-                providers.mir_borrowck = mir_borrowck;
-                providers.mir_promoted = mir_promoted;
-            },
-        );
-    }
-    #[tracing::instrument(level = "debug", skip_all)]
-    fn after_expansion<'tcx>( // RAMLA'S NOTES: Called after macro expansion, prusti_driver doesn't really do anything here
-        &mut self,
-        compiler: &Compiler,
-        queries: &'tcx Queries<'tcx>,
-    ) -> Compilation {
-        if compiler.session().is_rust_2015() {
-            compiler
-                .session()
-                .struct_warn(
-                    "Prusti specifications are supported only from 2018 edition. Please \
-                    specify the edition with adding a command line argument `--edition=2018` or \
-                    `--edition=2021`.",
-                )
-                .emit();
-        }
-        compiler.session().abort_if_errors();
-        if config::print_desugared_specs() {
-            // based on the implementation of rustc_driver::pretty::print_after_parsing
-            queries.global_ctxt().unwrap().enter(|tcx| {
-                let sess = compiler.session();
-                let krate = &tcx.resolver_for_lowering(()).borrow().1;
-                let src_name = sess.io.input.source_name();
-                let src = sess
-                    .source_map()
-                    .get_source_file(&src_name)
-                    .expect("get_source_file")
-                    .src
-                    .as_ref()
-                    .expect("src")
-                    .to_string();
-                print!(
-                    "{}",
-                    prusti_rustc_interface::ast_pretty::pprust::print_crate(
-                        sess.source_map(),
-                        krate,
-                        src_name,
-                        src,
-                        &prusti_rustc_interface::ast_pretty::pprust::state::NoAnn,
-                        false,
-                        sess.edition(),
-                        &sess.parse_sess.attr_id_generator,
-                    )
-                );
-            });
-        }
-        Compilation::Continue
-    }
+    // fn config(&mut self, config: &mut Config) { // RAMLA'S NOTES: Called before creating the compiler instance
+    //     assert!(config.override_queries.is_none());
+    //     config.override_queries = Some(
+    //         |_session: &Session, providers: &mut Providers, _external: &mut ExternProviders| {
+    //             providers.mir_borrowck = mir_borrowck;
+    //             providers.mir_promoted = mir_promoted;
+    //         },
+    //     );
+    // }
+    // #[tracing::instrument(level = "debug", skip_all)]
+    // fn after_expansion<'tcx>( // RAMLA'S NOTES: Called after macro expansion, prusti_driver doesn't really do anything here
+    //     &mut self,
+    //     compiler: &Compiler,
+    //     queries: &'tcx Queries<'tcx>,
+    // ) -> Compilation {
+    //     if compiler.session().is_rust_2015() {
+    //         compiler
+    //             .session()
+    //             .struct_warn(
+    //                 "Prusti specifications are supported only from 2018 edition. Please \
+    //                 specify the edition with adding a command line argument `--edition=2018` or \
+    //                 `--edition=2021`.",
+    //             )
+    //             .emit();
+    //     }
+    //     compiler.session().abort_if_errors();
+    //     if config::print_desugared_specs() {
+    //         // based on the implementation of rustc_driver::pretty::print_after_parsing
+    //         queries.global_ctxt().unwrap().enter(|tcx| {
+    //             let sess = compiler.session();
+    //             let krate = &tcx.resolver_for_lowering(()).borrow().1;
+    //             let src_name = sess.io.input.source_name();
+    //             let src = sess
+    //                 .source_map()
+    //                 .get_source_file(&src_name)
+    //                 .expect("get_source_file")
+    //                 .src
+    //                 .as_ref()
+    //                 .expect("src")
+    //                 .to_string();
+    //             print!(
+    //                 "{}",
+    //                 prusti_rustc_interface::ast_pretty::pprust::print_crate(
+    //                     sess.source_map(),
+    //                     krate,
+    //                     src_name,
+    //                     src,
+    //                     &prusti_rustc_interface::ast_pretty::pprust::state::NoAnn,
+    //                     false,
+    //                     sess.edition(),
+    //                     &sess.parse_sess.attr_id_generator,
+    //                 )
+    //             );
+    //         });
+    //     }
+    //     Compilation::Continue
+    // }
 
     // #[tracing::instrument(level = "debug", skip_all)]
     // fn after_analysis<'tcx>( // RAMLA'S NOTES: Called after type checking, this is where prusti_driver's work starts
