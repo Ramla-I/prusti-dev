@@ -157,9 +157,9 @@ impl prusti_rustc_interface::driver::Callbacks for PrustiCompilerCalls {
                 }
             }
             CrossCrateSpecs::import_export_cross_crate(&mut env, &mut def_spec);
-            // if !config::no_verify() {
-            //     verify(env, def_spec); // RAMLA'S NOTES: This is where prusti_driver sends VIR to be verified
-            // }
+            if !config::no_verify() {
+                verify(env, def_spec);
+            }
         });
 
         compiler.session().abort_if_errors();
